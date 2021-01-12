@@ -18,7 +18,6 @@ import os
 import tempfile
 import unittest
 from distutils.version import StrictVersion
-from charmhelpers.core import unitdata
 
 
 CRM_CONFIGURE_SHOW_XML = '''<?xml version="1.0" ?>
@@ -82,7 +81,12 @@ CRM_NODE_STATUS_XML = b'''
 </nodes>
 '''
 
+db_val = 'ef395293b1b7c29c5bf1c99774f75cf4'
 
+
+@mock.patch.multiple('charmhelpers.core.unitdata.Storage',
+                     get=mock.Mock(return_value=db_val),
+                     set=mock.Mock(), flush=mock.Mock())
 class TestPcmk(unittest.TestCase):
     def setUp(self):
         self.tmpfile = tempfile.NamedTemporaryFile(delete=False)
@@ -231,8 +235,6 @@ class TestPcmk(unittest.TestCase):
 
     @mock.patch('subprocess.call')
     def test_crm_update_resource(self, mock_call):
-        db = unitdata.kv()
-        db.set('res_test-IPaddr2', '')
         mock_call.return_value = 0
 
         with mock.patch.object(tempfile, "NamedTemporaryFile",
@@ -250,9 +252,6 @@ class TestPcmk(unittest.TestCase):
 
     @mock.patch('subprocess.call')
     def test_crm_update_resource_exists_in_kv(self, mock_call):
-        db = unitdata.kv()
-        db.set('res_test-IPaddr2', 'ef395293b1b7c29c5bf1c99774f75cf4')
-
         pcmk.crm_update_resource('res_test', 'IPaddr2',
                                  'params ip=1.2.3.4 cidr_netmask=255.0.0.0')
 
@@ -263,9 +262,6 @@ class TestPcmk(unittest.TestCase):
 
     @mock.patch('subprocess.call')
     def test_crm_update_resource_exists_in_kv_force_true(self, mock_call):
-        db = unitdata.kv()
-        db.set('res_test-IPaddr2', 'ef395293b1b7c29c5bf1c99774f75cf4')
-
         with mock.patch.object(tempfile, "NamedTemporaryFile",
                                side_effect=lambda: self.tmpfile):
             pcmk.crm_update_resource('res_test', 'IPaddr2',
