@@ -249,9 +249,11 @@ class TestPcmk(unittest.TestCase):
                               '\tparams ip=1.2.3.4 cidr_netmask=255.255.0.0'))
 
     @mock.patch('subprocess.call')
-    def test_crm_update_resource_exists_in_kv(self, mock_call):
-        db = unitdata.kv()
-        db.set('res_test-IPaddr2', 'ef395293b1b7c29c5bf1c99774f75cf4')
+    @mock.patch('charmhelpers.core.unitdata.Storage')
+    def test_crm_update_resource_exists_in_kv(self, mock_storage, mock_call):
+#        db = unitdata.kv()
+#        db.set('res_test-IPaddr2', 'ef395293b1b7c29c5bf1c99774f75cf4')
+        mock_storage.get.return_value = 'ef395293b1b7c29c5bf1c99774f75cf4'
 
         pcmk.crm_update_resource('res_test', 'IPaddr2',
                                  'params ip=1.2.3.4 cidr_netmask=255.0.0.0')
